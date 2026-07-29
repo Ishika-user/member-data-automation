@@ -1,376 +1,309 @@
-Automated Member Data Migration and QA System
+<div align="center">
 
-1. Project Overview
+# Member Data Migration & QA Automation
 
-This project involved the development of a Python-based system for automating member data migration and quality assurance. The program reads member records from an Excel workbook, cleans and standardizes the data, removes duplicates, separates records that require manual review, and creates a clean dataset that is ready for migration.
+### Python-based ETL, data validation, reconciliation, and reporting system
 
-The system also produces an Excel QA report and maintains a log of each execution. Automated tests are included to verify the main cleaning, validation, and reconciliation rules whenever the project is updated.
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-54%20Passed-2EA44F)
+![QA](https://img.shields.io/badge/QA-PASSED-2EA44F)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
-2. Business Problem
+**Developed by Ishika Bhattarai**
 
-Member information exported from an old system is not always ready to move into a new database. The Excel file may contain inconsistent headings, missing member numbers, repeated records, spelling differences, or two different names under the same member number.
+</div>
 
-Checking these issues manually is time-consuming and can lead to errors. The project was designed to automate repetitive tasks while directing uncertain records to manual review instead of making unreliable assumptions.
+---
 
-3. Project Objectives
+## Project Overview
 
-The main objectives of this project were to:
+This project automates the preparation of member records for migration from an Excel workbook to a new system. It extracts required fields, cleans and validates the data, handles duplicate records, separates uncertain records for manual review, and produces a migration-ready dataset.
 
-Read the required member fields from an Excel workbook
+The system also generates a detailed Excel QA report, verifies source-file integrity, records safe execution logs, and includes an automated test suite.
 
-Check the overall quality of the source data
+## Key Results
 
-Clean unnecessary spaces and standardize supported gender values
+| Metric | Result |
+|:---|---:|
+| Raw sample records | **38** |
+| Cleaned records | **30** |
+| Manual-review records | **6** |
+| Duplicate rows removed | **2** |
+| Automated tests | **54 passed** |
+| Reconciliation | **38 = 30 + 6 + 2** |
+| Overall QA status | **PASSED** |
 
-Validate member numbers and required names
+> These results were produced using fully synthetic demonstration data. No real member information is included in this repository.
 
-Detect duplicate and conflicting records
+## Main Features
 
-Keep valid records separate from records that need manual review
+- Automated Excel data extraction
+- Flexible header detection and column mapping
+- Data cleaning and standardization
+- Nepali Unicode preservation
+- Missing-value and format validation
+- Duplicate detection and resolution
+- Manual-review routing for conflicting records
+- Sequential member ID generation
+- SHA-256 source-file integrity verification
+- Reconciliation-based quality assurance
+- Formatted Excel QA reporting
+- Automated testing with pytest
+- Optional SQL Server loading
+- Privacy-conscious logging and configuration
 
-Assign new sequential member numbers to the cleaned data
+## Migration Workflow
 
-Create an Excel QA report
+```mermaid
+flowchart TD
+    A["Excel workbook"] --> B["Extract required fields"]
+    B --> C["Clean and standardize"]
+    C --> D{"Validate records"}
+    D -->|Valid| E["Migration-ready dataset"]
+    D -->|Issue found| F["Manual-review dataset"]
+    E --> G["QA and reconciliation report"]
+    F --> G
+    G --> H["Optional SQL Server load"]
+```
 
-Record useful run information without logging private member details
+## Technologies Used
 
-Test the main functions automatically
+| Technology | Purpose |
+|:---|:---|
+| Python 3.13 | Core automation |
+| pandas | Data extraction and transformation |
+| openpyxl | Excel generation and formatting |
+| pytest | Automated testing |
+| SQLAlchemy | Database integration |
+| pyodbc | SQL Server connectivity |
+| python-dotenv | Environment-based configuration |
+| Git and GitHub | Version control |
 
-Provide an optional SQL Server loading feature
+## Project Structure
 
-Use synthetic data for the public demonstration
-
-4. Technologies Used
-
-The following technologies were used:
-
-Python 3.13
-
-pandas
-
-openpyxl
-
-pytest
-
-SQLAlchemy and pyodbc
-
-python-dotenv
-
-Python standard libraries such as pathlib, logging, argparse, datetime, re, hashlib, and dataclasses
-
-5. Project Structure
-
+```text
 member-data-automation/
 ├── data/
-│   ├── private/
-│   └── sample/
-│       └── synthetic_member_data.xlsx
+│   ├── private/                 # Real data excluded from Git
+│   └── sample/                  # Synthetic demonstration data
 ├── output/
-│   ├── private/
-│   └── sample/
-│       ├── cleaned_members_sample.xlsx
-│       ├── manual_review_sample.xlsx
-│       └── qa_report_sample.xlsx
+│   ├── private/                 # Private outputs excluded from Git
+│   └── sample/                  # Demonstration outputs
 ├── src/
-│   ├── config.py
-│   ├── extract.py
-│   ├── transform.py
-│   ├── validate.py
-│   ├── report.py
-│   ├── sample_generator.py
-│   └── database.py
+│   ├── config.py                # Configuration and paths
+│   ├── extract.py               # Excel and column extraction
+│   ├── transform.py             # Cleaning and standardization
+│   ├── validate.py              # Validation and duplicate handling
+│   ├── report.py                # Excel QA reporting
+│   ├── sample_generator.py      # Synthetic data generation
+│   └── database.py              # Optional SQL Server loading
 ├── tests/
 │   ├── test_transform.py
 │   ├── test_validation.py
 │   └── test_reconciliation.py
-├── main.py
+├── main.py                      # Main command-line program
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
 └── README.md
+```
 
-Each Python file has a separate purpose. For example, extraction, transformation, validation, reporting, and database loading are kept in different files. This makes the code easier to understand, test, and update.
+## Data-Cleaning Rules
 
-6. ETL and QA Process
+- Leading and trailing spaces are removed.
+- Repeated internal spaces are reduced to one space.
+- Original name punctuation and capitalization are preserved.
+- Nepali names remain in Unicode and are never transliterated.
+- Member numbers must be valid whole numbers.
+- Missing, non-numeric, and fractional member numbers are rejected.
+- Supported gender formats are standardized to `Male` or `Female`.
+- Unsupported gender values become `null`.
+- Gender is never guessed from a person’s name.
 
-flowchart TD
-    A["Excel source"] --> B["Extract required fields"]
-    B --> C["Clean and standardize"]
-    C --> D{"Validate records"}
-    D -->|Valid| E["Clean migration file"]
-    D -->|Problem found| F["Manual-review file"]
-    E --> G["QA report"]
-    F --> G
-    G --> H["Optional SQL Server load"]
+## Duplicate-Handling Rules
 
-The program follows these steps:
+| Situation | Action |
+|:---|:---|
+| Exact duplicate | Keep one record and remove the additional row |
+| Same number and same name | Keep the most complete record |
+| Same number with conflicting names | Move the entire group to manual review |
 
-Extract: It checks the workbook sheets and selects the sheet that contains the required columns. It then reads the member number, English name, Nepali name, and gender.
+Conflicting names are not resolved automatically because an arbitrary selection could retain an incorrect record.
 
-Clean: It removes unnecessary spaces, checks member-number formats, standardizes supported gender values, and preserves Nepali Unicode text.
+## Validation and Reconciliation
 
-Validate: Records with missing or invalid required information are moved to manual review.
+The program performs 15 validation checks during each execution, including:
 
-Handle duplicates: Exact duplicate records are removed. Records with the same member number and name are combined by keeping the most complete version. Conflicting names under the same number are sent for manual review.
+- Output schema verification
+- Required-field checks
+- Member-number uniqueness
+- Sequential ID verification
+- Gender-domain validation
+- Output-file existence checks
+- Raw-to-output reconciliation
+- Source-file checksum comparison
 
-Create outputs: Valid records receive new sequential IDs and are written to a cleaned Excel file.
+The main reconciliation rule is:
 
-Produce the QA report: The program creates a report showing counts, missing values, duplicate information, gender distribution, validation results, and run details.
-
-Load to SQL Server: This is optional and disabled unless the required safety settings are enabled.
-
-7. Data-Cleaning Rules
-
-The following rules were applied during data cleaning:
-
-English names are trimmed, and repeated spaces are reduced to one space.
-
-Original punctuation and capitalization in names are kept.
-
-Nepali names remain in Unicode and are not translated or transliterated.
-
-A Nepali name can be blank because it is not a required field.
-
-Member numbers must be whole numbers.
-
-Missing, non-numeric, or fractional member numbers are treated as invalid.
-
-Text member numbers with leading zeros are recorded for audit purposes.
-
-Common gender values such as Male, male, M, Female, female, and F are standardized.
-
-Unsupported gender values become null, while the original value remains available in the audit information.
-
-The program never guesses gender from a person's name.
-
-8. Duplicate-Handling Rules
-
-Duplicates are handled according to the type of repetition:
-
-If two rows are exactly the same, one is kept and the extra row is removed.
-
-If the member number and name are the same but one row contains more complete information, the more complete record is kept.
-
-If the same member number appears with different names, all related rows are moved to manual review.
-
-Alphabetical order is not used to select between conflicting names because it could retain an incorrect record. These cases must be reviewed manually.
-
-9. Validation and Reconciliation
-
-The program runs 15 validation checks during every execution. These checks include:
-
-Correct output columns
-
-Unique member numbers
-
-Sequential member numbers without gaps
-
-Valid gender values
-
-Presence of the required output files
-
-Correct reconciliation totals
-
-Matching source-file checksums before and after processing
-
-The reconciliation formula is:
-
+```text
 Raw records = Cleaned records + Manual-review records + Duplicates removed
+```
 
-The checksum check confirms that the program reads the source workbook without changing it.
+## Installation
 
-10. Installation
+### 1. Clone the repository
 
-The project can be installed with the following commands:
-
-git clone <your-repository-url>
+```powershell
+git clone https://github.com/Ishika-user/member-data-automation.git
 cd member-data-automation
-python -m venv .venv
+```
 
-For Windows PowerShell:
+### 2. Create a virtual environment
 
+```powershell
+py -3.13 -m venv .venv
+```
+
+### 3. Activate the environment
+
+```powershell
 .\.venv\Scripts\Activate.ps1
+```
+
+### 4. Install the requirements
+
+```powershell
 python -m pip install -r requirements.txt
+```
 
-11. Running the Program
+## Running the Automation
 
-To create the synthetic demonstration dataset:
+### Generate synthetic sample data
 
+```powershell
 python main.py --generate-sample
+```
 
-To run the automation using the synthetic data:
+### Run the sample migration workflow
 
+```powershell
 python main.py --input "data/sample/synthetic_member_data.xlsx" --mode sample
+```
 
-To process a private workbook:
+### Run with a private workbook
 
+```powershell
 python main.py --input "data/private/source_member_data.xlsx" --mode private
+```
 
-Private data should never be uploaded to the public repository.
+## Automated Testing
 
-12. Automated Testing
+Run the complete test suite:
 
-The test suite was executed with:
-
+```powershell
 python -m pytest -v
+```
 
-The project contains tests for data transformation, validation, duplicate handling, reconciliation, Unicode preservation, and file-integrity checks. All 54 tests passed successfully.
+Successful test result:
 
-The tests use fictional names and numbers. No real member data is included.
+```text
+54 passed
+```
 
-13. Output Files
+The tests cover:
 
-File
+- Header mapping
+- Data extraction
+- Text cleaning
+- Nepali Unicode preservation
+- Member-number validation
+- Gender standardization
+- Duplicate handling
+- Reconciliation
+- Checksum verification
+- Output-file validation
 
-Purpose
+## Generated Outputs
 
-cleaned_members.xlsx
+| Output file | Description |
+|:---|:---|
+| `cleaned_members.xlsx` | Cleaned records ready for migration |
+| `manual_review.xlsx` | Records requiring human verification |
+| `qa_report.xlsx` | QA summary, missing values, duplicates, gender distribution, validation results, and run information |
+| `automation.log` | Safe execution log containing aggregate information only |
 
-Contains valid, cleaned records that are ready for migration
+## SQL Server Integration
 
-manual_review.xlsx
+SQL Server loading is optional and disabled by default. Loading requires both:
 
-Contains records that need a person to check them
+1. The `--load-sql` command-line option
+2. `ALLOW_SQL_LOAD=true` in the environment settings
 
-qa_report.xlsx
-
-Contains the QA summary, missing values, duplicate details, gender totals, validation results, and run information
-
-automation.log
-
-Records general execution information without storing full member records
-
-14. SQL Server Option
-
-The SQL Server loader is available in src/database.py, but it is disabled by default. Loading data requires both:
-
-The --load-sql option in the command, and
-
-ALLOW_SQL_LOAD=true in the environment settings.
-
-The loader validates the cleaned data before inserting it. It uses a transaction, rolls back if an error occurs, and checks the number of inserted rows afterward. It does not automatically drop or truncate tables, and database credentials are not written directly into the code.
-
-This feature should first be tested with a development database:
-
+```powershell
 python main.py --input "data/sample/synthetic_member_data.xlsx" --mode sample --load-sql
+```
 
-15. Privacy and Confidentiality
+The loader validates the cleaned data, uses a database transaction, rolls back on failure, and verifies the inserted row count.
 
-The original workbook used for the project contained confidential member information. For this reason, the real workbook, private outputs, environment file, and log files are excluded from Git using .gitignore.
+## Privacy and Security
 
-The public GitHub repository contains only the source code, tests, documentation, and fictional data generated by the sample-data script. The real organization name and original file name are not included.
+The following files and folders are excluded from version control:
 
-16. Synthetic Data
+```text
+.env
+data/private/
+data/sample/*.xlsx
+output/
+*.log
+```
 
-The file src/sample_generator.py creates 38 fictional member records for demonstration and testing. The sample includes:
+Only source code, tests, documentation, and synthetic information are included publicly. Real member information and database credentials are never committed.
 
-Extra spaces
+## Problem Solving
 
-Missing values
+During the first execution, Windows Application Control blocked a Pandas DLL under Python 3.14. The issue was resolved by:
 
-Different gender formats
+1. Installing Python 3.13.14
+2. Creating a new virtual environment
+3. Reinstalling the required packages
+4. Testing Python, NumPy, and Pandas
+5. Running the automation again
 
-Unsupported gender values
+After the environment was corrected, the migration workflow completed successfully and all 54 automated tests passed.
 
-Exact duplicates
+## Skills Demonstrated
 
-Repeated member numbers
+- Python automation
+- ETL pipeline development
+- Excel data processing
+- Data cleaning and validation
+- Duplicate handling
+- Reconciliation-based QA
+- Automated testing
+- SQL Server integration
+- Error investigation and troubleshooting
+- Git and GitHub version control
+- Data privacy and secure configuration
 
-Conflicting names
+## Future Improvements
 
-Invalid member numbers
+- Configurable column-mapping rules
+- Human-approved fuzzy matching for similar names
+- Web-based manual-review interface
+- Performance improvements for larger workbooks
+- GitHub Actions for automatic testing
 
-These examples allow the main rules to be tested without exposing any real information.
+## License
 
-17. Skills Demonstrated
+This project is available under the [MIT License](LICENSE).
 
-The project demonstrates the following skills:
+---
 
-Designing an ETL workflow
+<div align="center">
 
-Organizing Python code into separate modules
+### Member Data Migration & QA Automation
 
-Cleaning text and numeric data
+Reliable, auditable, and privacy-conscious data processing with Python.
 
-Preserving Nepali Unicode characters
-
-Handling duplicates in a consistent way
-
-Separating uncertain records for manual review
-
-Creating reconciliation and validation checks
-
-Writing automated tests with pytest
-
-Creating formatted Excel reports
-
-Connecting Python to SQL Server safely
-
-Using Git and GitHub for version control
-
-Protecting private information
-
-18. Sample Results
-
-The synthetic dataset produced the following results:
-
-Metric
-
-Result
-
-Raw records
-
-38
-
-Cleaned records
-
-30
-
-Manual-review records
-
-6
-
-Duplicate records removed
-
-2
-
-Reconciliation
-
-38 = 30 + 6 + 2
-
-Overall QA status
-
-PASSED
-
-These numbers are from the fictional demonstration data and do not represent the real organization or its members.
-
-19. Challenges and Problem Solving
-
-During execution, Windows Application Control blocked a Pandas DLL under Python 3.14. The issue was resolved by installing Python 3.13.14, creating a new virtual environment, reinstalling the project requirements, and testing the imports again. Pandas then loaded correctly.
-
-After the environment was corrected, the synthetic dataset was generated and the complete automation was executed successfully. The QA status passed, and all 54 automated tests were completed successfully before the project was pushed to GitHub.
-
-20. Future Improvements
-
-Possible future improvements include:
-
-Moving header-matching rules into a separate configuration file
-
-Adding optional fuzzy matching for similar names, with human approval
-
-Building a simple interface for reviewing rejected records
-
-Improving bulk loading for larger Excel files
-
-Adding GitHub Actions so the tests run automatically after every push
-
-21. Conclusion
-
-This project demonstrates that data migration involves more than transferring information from one system to another. Source data must first be assessed, cleaned, validated, and reconciled.
-
-The final program completed the sample migration process successfully, produced separate cleaned and manual-review files, passed all QA checks, and passed all 54 automated tests. Private data is also kept separate from the public source code. Overall, the project demonstrates practical application of Python automation, QA testing, Excel processing, SQL Server integration, and version control.
-
-22. License
-
-This project uses the MIT License. The full license is available in the LICENSE file.
+</div>
